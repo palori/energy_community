@@ -1,4 +1,6 @@
-import json
+
+# This is the structure of how the dictionary of the system nodes will look like
+
 
 nodes = {'1': {'id':1, #both should be the same and unique (also used for leader election)
                'ip':'192.168.0.101',
@@ -26,17 +28,3 @@ nodes = {'1': {'id':1, #both should be the same and unique (also used for leader
         }
 
 # store data in file???
-
-print('nodes type = {}'.format(type(nodes)))
-j1 = json.dumps(nodes, ensure_ascii=False)
-print('j1 type = {}'.format(type(j1)))
-d1 = json.loads(j1)
-print('d1 type = {}'.format(type(d1)))
-
-print('\n---\n')
-print(j1)
-print('__')
-if nodes == d1:
-    print(d1)
-else:
-    print('caca')

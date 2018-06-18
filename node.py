@@ -1,8 +1,7 @@
 import time
 from comm.pub_subs.pub_server import Publisher
 from comm.pub_subs.sub_client import Subscriber
-# from comm.rpc.rpc_master import Master
-# from comm.rpc.rpc_slave import Slave
+from comm.rpc.rpc import RPC
 
 class Node():
     

@@ -16,6 +16,7 @@ class RPC():
     def __init__(self):
         self.server = None
         self.client = None
+        self.SEND_THRESHOLD = 10 # [s] adjust to 
         pass
     
     def kill(self):
@@ -41,7 +42,7 @@ class RPC():
             
     def ask_node(node_ip='localhost', rpc_port=9900, function='reverse', arguments='arg'):
         t_init = time.time()
-        while (time.time() - t_init) < 10:
+        while (time.time() - t_init) < self.SEND_THRESHOLD: # may need to adjust the theshold!
             try:
                 # Create the proxy in a nice way so it gets closed when we are done.
                 adress = 'http://'+node_ip+':'+str(rpc_port)
@@ -66,6 +67,6 @@ class RPC():
         
         
         
-if __name__ == '__main__':
+if __name__ == '__main__': # to test the server
     rpc = RPC()
     rpc.start_server()

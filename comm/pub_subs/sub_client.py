@@ -130,7 +130,7 @@ class Subscriber():
                 string = socket.recv_string(flags=zmq.NOBLOCK)
                 t1 = time.time()
                 
-                if is_check_master:
+                if is_check_master: # master sends also the steps
                     topic, messagedata, t0, self.step = string.split(';')
                 else:
                     topic, messagedata, t0 = string.split(';')
