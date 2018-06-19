@@ -56,8 +56,7 @@ class Node():
         # once done try to subscribe to others and start publish... 
         
         
-    def publish_meas(self): # meas = measurement
-        meas = _get_meas()
+    def publish_meas(self, meas): # meas = measurement
         
         # check if meas id float/double and not NaN, None...
         if meas != None:
@@ -67,43 +66,7 @@ class Node():
                 self.pub.publish(topic='measurement', data=meas)
                 self.prev_meas = meas # only overwrite in this case
         
-    def _get_meas(self):
-        # specific for each node
-        meas = None
-        if self.node_type = 'pv':
-            meas = _get_pv_data()
-        elif self.node_type = 'wb':
-            meas = _get_wb_data()
-        elif self.node_type = 'wt':
-            meas = _get_wt_data()
-        elif self.node_type = 'house':
-            meas = _get_house_data()
-        elif self.node_type = 'batt':
-            meas = _get_batt_data()
-        else:
-            print("Unexpected {1} as 'node_type'.".format(self.node_type))
-            # logging this text and may throw an error??
-        return meas
-        
-    # PV
-    def _get_pv_data(self):
-        pass
-    
-    # WB = water boiler
-    def _get_wb_data(self): 
-        pass
-    
-    # WT = wind turbine
-    def _get_wt_data(self):
-        pass
-    
-    # House(s)
-    def _get_house_data(self):
-        pass
-    
-    # Battery
-    def _get_batt_data(self):
-        pass
+   
     
     
     def publish_keep_alive(self):

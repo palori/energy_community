@@ -13,10 +13,11 @@ class MyServer(SimpleXMLRPCServer):
             
 class RPC():
     
-    def __init__(self):
+    def __init__(self, sys_nodes):
         self.server = None
         self.client = None
-        self.SEND_THRESHOLD = 10 # [s] adjust to 
+        self.SEND_THRESHOLD = 10 # [s] adjust to
+        self.sys_nodes = sys_nodes
         pass
     
     def kill(self):
@@ -51,7 +52,6 @@ class RPC():
                     # Get the indicated remote function.
                     remote_function = getattr(proxy, function)
                     # Print the result of executing the remote function.
-                    arguments = 1
                     print(f"Arguments {arguments} of type {type(arguments)}.")
                     print(remote_function(arguments))
                     break
@@ -64,6 +64,32 @@ class RPC():
         print(f"test with message: {msg}")
         time.sleep(4)
         print(time.time())
+        
+    def set_sys_nodes(self, sys_nodes): # do it also when updating the list for all the nodes!!!
+        self.sys_nodes = sys_nodes
+        
+    def new_node(self, node_data):
+        sys_nodes_int=[int(n) for n in self.sys_nodes.keys()]
+        new_node_id = min(sys_nodes_int)-1
+        
+        # add data to node_data
+        node_data['id'] = new_node_id
+        node_data['rpc_port'] = max([v['rpc_port'] for k,v in nodes.items()])+1
+        node_data['rpc_status'] = 0
+        node_data['id'] =
+        
+        self.sys_nodes[str(new_node_id)] = node_data
+               'rpc_port': 9001,
+               'rpc_status':1, #1=master, 0=slave
+               'produce':1, #1=yes, 0=no
+               'control':1, #1=yes, 0=no
+               'publish_ports':{'keep_alive':5001,
+                                'measurement':6001
+                               }
+               #'subscribed_ports':{} #it will fill in when adding to the system
+              }
+        
+        
         
         
         

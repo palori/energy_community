@@ -4,8 +4,8 @@
 
 nodes = {'1': {'id':1, #both should be the same and unique (also used for leader election)
                'ip':'192.168.0.101',
-               'rpc_port': 9001,
-               'rpc_status':1, #1=master, 0=slave
+               'rpc_port': 9001, # given by the master
+               'master_id': '1000', # given by the master
                'produce':1, #1=yes, 0=no
                'control':1, #1=yes, 0=no
                'publish_ports':{'keep_alive':5001,
