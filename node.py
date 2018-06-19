@@ -1,58 +1,82 @@
 import time
+import json
 from comm.pub_subs.pub_server import Publisher
 from comm.pub_subs.sub_client import Subscriber
 from comm.rpc.rpc import RPC
 
 class Node():
     
+    # Constants assigned to the initial master
+    NODE_ID = 1000
+    RPC_PORT = 9000
+    KEEP_ALIVE_PORT = 5000
+    MEASUREMENT_PORT = 6000
+    
+    
     def __init__(self,
-                 # node_id=None,
                  ip='192.168.0.101', 
-                 rpc_port=9001, 
-                 node_type='pv', 
+                 master_ip='192.168.0.101'
+                 master_rpc_port=9001,
                  produce=1, 
-                 control=1, 
-                 # keep_alive_port=5001,
-                 # measurement_port=6001, 
-                 meas_th=1):
-        # self.node_id=node_id
-        self.ip=ip
-        self.rpc_port=port
-        self.node_type=node_type
+                 control=1):
+                 # meas_th=1):
+        
+        self.node_id=None
+        self.node_ip=ip
+        self.rpc_port=None
+        # self.node_type=node_type
+        self.master_id=None
         self.produce=produce
         self.control=control
-        # self.keep_alive_port=keep_alive_port
-        # self.measurement_port=measurement_port
+        self.keep_alive_port=None
+        self.measurement_port=None
         self.meas_th=meas_th # measurement threshold
         
+        # other
         self.prev_meas = 0 # previous measurement
         self.system_nodes = {} # sent by the master ?????????
         self.possible_nodes_down = {} # node_id and number of times checked and not got info
-        
-        self.connect2RpcMaster(master_ip='192.168.0.101', rpc_port=9001)
-        
-        
+
         self.pub = Publisher()
         self.pub.new_topics({'keep_alive':self.keep_alive_port, 'measurement':self.measurement_port})
         self.subs = Subscriber()
+        self.rpc = RPC()
         
+        self.connect2RpcMaster(master_ip, master_rpc_port)
         
-    def connect2RpcMaster(self, master_ip='192.168.0.101', rpc_port=9001)
+    def get_node_data(self):
+        self.node_data = {'id':self.node_id, # both should be the same and unique (also used for leader election)
+                                   # do we need it??????????????
+                          'ip':self.node_ip,
+                          'rpc_port': self.rpc_port, # given by the master
+                          'master_id': self.master_id, # given by the master, int or str??
+                          'produce': self.produce,
+                          'control': self.control
+                          'publish_ports':{'keep_alive': self.keep_alive_port,
+                                           'measurement': self.measurement_port
+                                          }
+                         }
+        return self.node_data
     
-        # send RPC to connect and send node_data
+    def connect2RpcMaster(self, master_ip, rpc_port)
+    
+        # create RPC to connect and send node_data
         
-        if master_ip == self.ip:
-            if self.control>0.5:
-                self.node_id = 199
-            else:
-                self.node_id = 99
+        if master_ip == self._node_ip:
+            if self.node_id == None:
+                self.node_id = NODE_ID
+                self.master_id = NODE_ID
+                self.rpc_port = RPC_PORT
+                self.keep_alive_port = KEEP_ALIVE_PORT
+                self.measurement_port = MEASUREMENT_PORT
         else:
             pass
+            response = self.rpc.ask_node(node_ip=master_ip, rpc_port=rpc_port,
+                                         function='new_node', arguments=get_node_dataself.())
+            self.node_id, sys_nodes = response.split(';')
+            self.system_nodes = json.loads(sys_nodes)
+            self.node_data = self.system_nodes[self.node_id]
         
-        self.node_id=node_id
-        self.master_id=master_id
-        self.keep_alive_port=keep_alive_port
-        self.measurement_port=measurement_port
         # once done try to subscribe to others and start publish... 
         
         
@@ -65,9 +89,7 @@ class Node():
                 # publish measurement...
                 self.pub.publish(topic='measurement', data=meas)
                 self.prev_meas = meas # only overwrite in this case
-        
-   
-    
+
     
     def publish_keep_alive(self):
         
@@ -126,21 +148,19 @@ class Node():
         print(sys_nodes_int)
         self.master_id = max(sys_nodes_int)
         print(f"Master is {self.master_id}")
-    
-    def start_rpc_master(self):
-        pass
-    
-    def start_rpc_slave(self):
-        pass
-    
-    def stop_rpc_master(self):
-        pass
-    
-    def stop_rpc_slave(self):
-        pass
-    
-    def stop_pub(self):
-        pass
-    
-    # no need to stop subs, the rest of the nodes will delete it from their list so won't be subscribed any more.
-    
+        
+        
+    def wait_new_nodes(self):
+        while True:
+            print('Waiting for new nodes')
+            rpc.start_server(node.node_ip, node.rpc_port)
+            time.sleep(1)
+            
+            
+
+            
+            
+            
+            
+            
+            
