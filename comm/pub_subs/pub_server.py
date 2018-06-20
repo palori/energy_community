@@ -1,3 +1,4 @@
+#import python3-zmq as zmq
 import zmq
 import random
 import sys
@@ -17,24 +18,26 @@ class Publisher():
         return self.sockets
         
     def new_topics(self, new_topics={}):#'keep_alive':5556, 'measurement':5557}):
-        
-        # Check if topic already published or port in use
-        for topic,data in self.sockets.items():
-            port = data['port']
-            for new_topic, new_port in new_topics.items():
-                if new_topic == topic:
-                    print(f"Already publishing in topic {topic}.")
-                    del new_topics[new_topic]
-                elif new_port == port:
-                    print(f"Port {port} already in use for an other topic.")
-                    del new_topics[new_topic]
-                    
+        if self.sockets != {}:
+            # Check if topic already published or port in use
+            for topic,data in self.sockets.items():
+                port = data['port']
+                
+                for new_topic, new_port in new_topics.items():
+                    if new_topic == topic:
+                        print(f"Already publishing in topic {topic}.")
+                        del new_topics[new_topic]
+                    elif new_port == port:
+                        print(f"Port {port} already in use for an other topic.")
+                        del new_topics[new_topic]
+                        
         # With the topics and ports that are not used yet
         for topic, port in new_topics.items():
-            if(port >= 2000 and port<9500): # improve port checking (fine for testing)
-                self._pub(topic, port)
-            else:
-                print(f"Port {port} out of range [2000,9500].")
+            #if(port > 1999 and port<9000): # improve port checking (fine for testing)
+            print(f"publish topic {topic} in port {port}")
+            self._pub(topic, port)
+            #else:
+            #    print(f"Port {port} out of range [2000,9000).")
                 
     def _pub(self, topic, port):
         # Create socket to publish
@@ -83,7 +86,7 @@ class Publisher():
         except KeyError as e:
             print(e)
             pass
-        messagedata = data #????????????????????????????????????????????
+        messagedata = str(data) #????????????????????????????????????????????
         socket.send_string(f"{topic};{messagedata};{time.time()}")
         print(f"Published topic {topic}: {messagedata}.")
         time.sleep(1)

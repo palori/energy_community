@@ -1,4 +1,5 @@
 import sys
+#import python3-zmq as zmq
 import zmq
 import json
 import time
@@ -24,31 +25,28 @@ class Subscriber():
     def sockets(self):
         return self.sockets
 
-    def keep_alive_dict(self, node_id='all'):
-        if node_id == 'all':
-            return self.keep_alive_dict
-        else
-            return []
-
     def subscribe(self, node_id='0', node_ip='localhost', topicfilters={'keep_alive':5556, 'measurement':5557}):
         
         # Ceck if topics asked to subscribe of a certain node are already in use and also the ports
+        already_subs = {}
         for node,data in self.sockets.items():
-            if len(node)>0.5:
-                if node == node_id:
-                    for topic,data1 in data.items():
-                        port = data1['port']
-                        for new_topic, new_port in topicfilters.items():
-                            if new_topic == topic:
-                                print(f"Already subscribed in topic {topic} of node {node_id}.")
-                                del topicfilters[new_topic]
-                            elif new_port == port:
-                                print(f"Port {port} already in use for an other topic of node {node_id}.")
-                                del topicfilters[new_topic]
+            if node == node_id:
+                for topic,data1 in data.items():
+                    port = data1['port']
+                    for new_topic, new_port in topicfilters.items():
+                        if new_topic == topic:
+                            print(f"Already subscribed in topic {topic} of node {node_id}.")
+                            already_subs[new_topic] = port
+                        elif new_port == port:
+                            print(f"Port {port} already in use for an other topic of node {node_id}.")
+                            already_subs[new_topic] = port
         
+        for k in already_subs.keys():
+            del topicfilters[k]
+
         # With the topics and ports that are not subscribed/used yet
         for topic, port in topicfilters.items():
-            if(port >= 2000 and port<9500): # improve port checking (fine for testing)
+            if(port >= 2000 and port<9000): # improve port checking (fine for testing)
                 self._subs(node_id, topic, node_ip, port)
             else:
                 print(f"Port {port} out of range [2000,9500].")
@@ -59,7 +57,7 @@ class Subscriber():
         context = zmq.Context()
         socket = context.socket(zmq.SUB)
 
-        print("Collecting updates from time server at tcp://localhost:{port}")
+        #print("Collecting updates from time server at tcp://localhost:{port}")
         socket.connect(f"tcp://{node_ip}:{port}")
         
         # Filter by topic
@@ -125,7 +123,7 @@ class Subscriber():
     def _check_msg(self, is_check_master, node_id, topic, socket):
         print(f"_check_msg({node_id}, {topic})")
         t_init = time.time()
-        while time.time()-t_init < 10:
+        while time.time()-t_init < 2:
             try:
                 string = socket.recv_string(flags=zmq.NOBLOCK)
                 t1 = time.time()
@@ -134,11 +132,10 @@ class Subscriber():
                     topic, messagedata, t0, self.step = string.split(';')
                 else:
                     topic, messagedata, t0 = string.split(';')
-                print(f"Received on topic {topic}: {messagedata} at time {t0}\n")
+                print(f"Received on topic {topic}: {messagedata} (Delta t = {t1-float(t0)})\n")
                     
                 # save data
                 self.sockets[node_id][topic]['last_msg'] = {'time':t1, 'msg':messagedata}
-                print(f"Delta t = {t1-float(t0)}")
                 break
             except zmq.error.Again as e:
                 print(e)
@@ -165,10 +162,10 @@ class Subscriber():
     def get_last_measurements(self): # some may be None
         meas_list = set()
         for node_id in self.sockets.keys():
-            meas_list.add(self.get_last_measurement(node_id))
+            meas_list.add(self._get_last_measurement(node_id))
         return meas_list
 
-    def get_last_measurement(self, node_id): # may be None
+    def _get_last_measurement(self, node_id): # may be None
         try:
             return self.sockets[node_id][self.MEASUREMENT_TOPIC]['last_msg']
         except KeyError as e:
