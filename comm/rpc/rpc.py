@@ -22,7 +22,7 @@ class ServerThread(threading.Thread):
     def __init__(self, node_ip, rpc_port, sys_nodes):
         threading.Thread.__init__(self)
         #self.localServer = SimpleThreadedXMLRPCServer((node_ip, rpc_port))
-        self.localServer = SimpleXMLRPCServer((node_ip, rpc_port))
+        self.localServer = SimpleXMLRPCServer((node_ip, rpc_port), allow_none=True)
         self.localServer.register_function(self.new_node) #just return a string
         self.localServer.register_function(self.set_sys_nodes)
         self.sys_nodes = sys_nodes
@@ -89,8 +89,11 @@ class RPC():
             self.server.register_function(self.test)
             self.server.register_function(self.new_node, 'new_node')
             
-            self.server.serve_forever()#infinite=False, time_period=10)
-            #self.server.handle_request()
+            handler = 0 #local var to choose handle_request or serve forever
+            if not handler:
+                self.server.serve_forever()#infinite=False, time_period=10)
+            else:
+                self.server.handle_request()
 
     def start_server_thread(self, node_ip='localhost', rpc_port=8000):
         self.server = ServerThread(node_ip, rpc_port, self.sys_nodes)
@@ -113,9 +116,15 @@ class RPC():
                     # Print the result of executing the remote function.
                     #print(f"Arguments {arguments} of type {type(arguments)}.")
                     #print(remote_function(arguments))
-                    response = proxy.new_node(arguments)
-                    node_id, sys_nodes = response.split(';')
-                    self.sys_nodes = json.loads(sys_nodes)
+                    if function=='new_node':
+                        response = proxy.new_node(arguments)
+                        node_id, sys_nodes = response.split(';')
+                        self.sys_nodes = json.loads(sys_nodes)
+                    elif function=='set_sys_nodes':
+                        response = proxy.set_sys_nodes(arguments)
+                    else:
+                        print(f"Function {function} does not exist.")
+                    
                     return response
             except OSError as e:
                 print(e)

@@ -1,11 +1,12 @@
 import node
 import time
+from utils.sava_data_csv import SaveDataCSV
 
 
 try:
 
-    n1 = node.Node(ip='syslab-09', 
-                master_ip='syslab-10',
+    n1 = node.Node(ip='other',#'syslab-09', 
+                master_ip='localhost',#'syslab-10',
                 #master_rpc_port=8000,
                 produce=1,
                 control=0)
@@ -60,3 +61,5 @@ try:
 
 except KeyboardInterrupt:
     print("Exiting")
+    sd.save_data({'Stop':1})
+    sd.save_csv()
