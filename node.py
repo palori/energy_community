@@ -73,7 +73,7 @@ class Node():
                 self.system_nodes[str(self.node_id)]= self.get_node_data()
                 response = self.system_nodes
         else:
-            print('\n  -- node data --\n {self.get_node_data()}')
+            print(f'\n  -- node data --\n {self.get_node_data()}')
             response = self.rpc.ask_node(node_ip=self.master_ip,
                                          rpc_port=self.master_rpc_port,
                                          function='new_node',
@@ -114,7 +114,9 @@ class Node():
         # i.e: topic = 'step', data = 3
         if data != None:
             self.pub.publish(str(topic),str(data))
-        
+
+    def publish_nodes_list(self):
+        self.pub.publish('nodes_list',json.dumps(self.system_nodes, ensure_ascii=False))
     
     def subscribe_topic(self, node_id, topics='all'):
         
@@ -133,6 +135,11 @@ class Node():
             node_ip=node['ip'],
             topicfilters=topics)
 
+    def update_nodes_list(self):
+        nl = self.subs.check_msgs(check_topic='nodes_list')
+        if nl!=None and nl!="":
+            self.system_nodes = json.loads(nl)
+            print(f'updated: {self.system_nodes}')
     
     def check_subscriptions(self): # topic, ip, port ??? maybe check all based on a list
         
@@ -144,8 +151,9 @@ class Node():
         
         # if not getting any data from others or from less than half of the nodes -> close RPC, stop pub, unsubscribe
         #     maybe set node_id = None like if it's not in the network, even reboot the controller
-        self.subs.check_msgs()
+        self.subs.check_msgs() # keep_alive
         self.subs.check_msgs(check_topic='measurement')
+        
         nodes = self.subs.keep_alive_dict
         count_nodes_on = 0
         total_nodes = 0

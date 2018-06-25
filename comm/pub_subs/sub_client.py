@@ -133,9 +133,13 @@ class Subscriber():
                 else:
                     topic, messagedata, t0 = string.split(';')
                 print(f"Received on topic {topic}: {messagedata} (Delta t = {t1-float(t0)})\n")
-                    
+
                 # save data
                 self.sockets[node_id][topic]['last_msg'] = {'time':t1, 'msg':messagedata}
+
+                if topic == 'nodes_list':
+                    return messagedata
+
                 break
             except zmq.error.Again as e:
                 print(e)

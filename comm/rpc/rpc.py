@@ -28,14 +28,17 @@ class ServerThread(threading.Thread):
         self.sys_nodes = sys_nodes
 
     def run(self):
-         self.localServer.serve_forever()
+        try:
+            self.localServer.serve_forever()
+        except KeyboardInterrupt:
+            print('Closing RPC Server')
 
     def set_sys_nodes(self, sys_nodes):
         self.sys_nodes = sys_nodes
 
     def new_node(self, node_data):
         node_data = json.loads(node_data)
-        print('Adding node to the system')
+        print('\n\nAdding node to the system\n\n')
         sys_nodes_int=[int(n) for n in self.sys_nodes.keys()]
         new_node_id = min(sys_nodes_int)-1
         
@@ -89,7 +92,7 @@ class RPC():
             self.server.register_function(self.test)
             self.server.register_function(self.new_node, 'new_node')
             
-            handler = 0 #local var to choose handle_request or serve forever
+            handler = 1 #local var to choose handle_request or serve forever
             if not handler:
                 self.server.serve_forever()#infinite=False, time_period=10)
             else:
